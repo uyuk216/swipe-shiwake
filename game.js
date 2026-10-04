@@ -3,6 +3,10 @@
 (() => {
   const GAME_SECONDS = 20;
   const RULE_SECONDS = 4.15;
+  const FIRST_ITEM_SECONDS = 2.5;
+  const MIN_ITEM_SECONDS = 0.8;
+  const MISS_RESOLVE_SECONDS = 0.2;
+  const NEXT_ITEM_DELAY = 0.04;
   const STORAGE_KEY = "bakusoku-swipe-sort-best-v1";
   const MAX_PARTICLES = 120;
   const MAX_FLOATERS = 14;
@@ -233,7 +237,7 @@
     currentRuleIndex = 0;
     activeItem = null;
     resolving = null;
-    spawnIn = 0.18;
+    spawnIn = 0.08;
     hitStop = 0;
     shakePower = 0;
     flashPower = 0;
@@ -279,7 +283,7 @@
     const options = RULES[ruleIndex].items;
     const template = options[Math.floor(Math.random() * options.length)];
     const p = pace();
-    const life = 1.58 - 1.22 * Math.pow(p, 1.55);
+    const life = Math.max(MIN_ITEM_SECONDS, FIRST_ITEM_SECONDS - 1.7 * Math.pow(p, 1.55));
     activeItem = { ...template, ruleIndex, age: 0, life, seed: Math.random() * 10 };
   }
 
@@ -313,13 +317,13 @@
   }
 
   function clearItem(correct, side, source = activeItem) {
-    if (!source || screen !== "play") return;
+    if (!source || source !== activeItem || screen !== "play") return;
     pointerStart = null;
     const centerX = width / 2;
-    const centerY = height * (0.54 + (source.age / source.life) * 0.17);
+    const centerY = height * (0.54 + clamp(source.age / source.life, 0, 1) * 0.07);
     activeItem = null;
-    resolving = { item: source, side, correct, age: 0, duration: correct ? 0.23 : 0.27, centerX, centerY };
-    spawnIn = correct ? 0.23 : 0.27;
+    resolving = { item: source, side, correct, age: 0, duration: correct ? 0.16 : MISS_RESOLVE_SECONDS, centerX, centerY };
+    spawnIn = NEXT_ITEM_DELAY;
 
     if (correct) {
       score += 1;
@@ -408,7 +412,7 @@
           resolving.age += dt;
           if (resolving.age >= resolving.duration) {
             resolving = null;
-            spawnIn = Math.min(spawnIn, 0.06);
+            spawnIn = NEXT_ITEM_DELAY;
           }
         } else if (activeItem) {
           activeItem.age += dt;
@@ -755,7 +759,7 @@
       ctx.restore();
     } else if (activeItem) {
       const progress = clamp(activeItem.age / activeItem.life, 0, 1);
-      const centerY = height * (0.54 + progress * 0.16);
+      const centerY = height * (0.54 + progress * 0.07);
       const p = pace();
       const trailCount = p > 0.68 ? Math.min(3, 1 + Math.floor((p - 0.68) * 8)) : 0;
       for (let index = trailCount; index > 0; index -= 1) {
@@ -798,15 +802,19 @@
   function loop(timestamp) {
     const dt = lastFrame ? clamp((timestamp - lastFrame) / 1000, 0, 0.05) : 1 / 60;
     lastFrame = timestamp;
-    update(dt);
-    render();
-    window.requestAnimationFrame(loop);
+    try {
+      update(dt);
+      render();
+    } finally {
+      // Keep the game loop alive if a transient rendering or update error occurs.
+      window.requestAnimationFrame(loop);
+    }
   }
 
   function pointerDown(event) {
     if (screen !== "play" || !activeItem || pointerStart) return;
     pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
-    try { canvas.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
+    try { stage.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
   }
 
   function pointerUp(event) {
@@ -906,10 +914,10 @@
   startButton.addEventListener("click", startGame);
   restartButton.addEventListener("click", startGame);
   shareButton.addEventListener("click", shareResult);
-  canvas.addEventListener("pointerdown", pointerDown);
-  canvas.addEventListener("pointerup", pointerUp);
-  canvas.addEventListener("pointercancel", pointerCancel);
-  canvas.addEventListener("lostpointercapture", pointerCancel);
+  stage.addEventListener("pointerdown", pointerDown);
+  stage.addEventListener("pointerup", pointerUp);
+  stage.addEventListener("pointercancel", pointerCancel);
+  stage.addEventListener("lostpointercapture", pointerCancel);
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("resize", resizeCanvas, { passive: true });
   window.addEventListener("orientationchange", resizeCanvas, { passive: true });
