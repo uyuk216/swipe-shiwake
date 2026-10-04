@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#090914">
+    <meta name="description" content="20秒で脳が追いつかない。爆速スワイプ仕分け。">
+    <title>爆速スワイプ仕分け</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="game.js" defer></script>
+  </head>
+  <body>
+    <main id="stage" class="stage" aria-label="爆速スワイプ仕分け">
+      <canvas id="game-canvas" aria-hidden="true"></canvas>
+
+      <header id="hud" class="hud" hidden>
+        <div class="score-row">
+          <div class="stat score-stat"><span class="stat-label">スコア</span><strong id="score-value">000</strong></div>
+          <div class="stat time-stat"><span class="stat-label">のこり</span><strong id="time-value">20.0</strong></div>
+          <div id="combo-stat" class="stat combo-stat"><span class="stat-label">コンボ</span><strong id="combo-value">×0</strong></div>
+        </div>
+        <div class="timer-track" aria-label="残り時間">
+          <div id="timer-fill" class="timer-fill"></div>
+        </div>
+        <div class="rule-row" aria-live="polite">
+          <div class="rule-side left-side"><span class="rule-arrow">←</span><strong id="left-rule">食べ物</strong></div>
+          <span class="rule-divider">どっち</span>
+          <div class="rule-side right-side"><strong id="right-rule">食べられない</strong><span class="rule-arrow">→</span></div>
+        </div>
+      </header>
+
+      <div id="rule-alert" class="rule-alert" aria-live="assertive" aria-atomic="true">
+        <span id="rule-alert-title" class="rule-alert-title">ルールチェンジ！</span>
+        <span id="rule-alert-copy" class="rule-alert-copy"></span>
+      </div>
+
+      <div id="swipe-hint" class="swipe-hint" hidden>
+        <span>← スワイプ</span><i></i><span>スワイプ →</span>
+      </div>
+
+      <section id="title-panel" class="panel title-panel">
+        <div class="title-copy">
+          <p class="eyebrow"><span></span> 反射神経、限界突破</p>
+          <h1>爆速<br><span>スワイプ仕分け</span></h1>
+          <p class="title-sub">20秒で、脳が追いつかない。</p>
+        </div>
+        <div class="title-controls">
+          <div class="mini-directions"><b>← 左へ</b><span>仕分けるだけ</span><b>右へ →</b></div>
+          <button id="start-button" class="primary-button" type="button">タップしてスタート <span>↗</span></button>
+          <p class="title-foot">ミスしたら即リカバリー。</p>
+        </div>
+      </section>
+
+      <section id="result-panel" class="panel result-panel" hidden aria-live="polite">
+        <p class="eyebrow result-eyebrow"><span></span> 20秒おつかれ！</p>
+        <h2>終了！</h2>
+        <div class="result-score"><strong id="result-score">0</strong><span>点</span></div>
+        <div class="result-stats">
+          <div><span>最大コンボ</span><strong id="result-combo">×0</strong></div>
+          <div><span>自己ベスト</span><strong id="best-score">0</strong></div>
+        </div>
+        <button id="restart-button" class="primary-button restart-button" type="button">もう1回 <span>↻</span></button>
+        <button id="share-button" class="share-button" type="button">結果をシェアする <span>↗</span></button>
+        <p id="share-status" class="share-status" aria-live="polite"></p>
+        <textarea id="share-fallback" class="share-fallback" readonly aria-label="共有するテキスト" hidden></textarea>
+      </section>
+
+      <p class="sr-only" id="game-instructions">中央のお題を左右にスワイプします。左矢印キーと右矢印キーでも遊べます。20秒間、表示中のルールに合わせて仕分けてください。</p>
+    </main>
+  </body>
+</html>
